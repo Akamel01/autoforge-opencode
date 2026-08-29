@@ -6,3 +6,6 @@ package-lock.json
 .tmp/
 state/
 .opencode/node_modules/
+# source export of architecture diagram — canonical is docs/architecture.png
+ChatGPT*.png
+*.png.bak

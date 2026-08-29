@@ -6,8 +6,8 @@ permission:
   external_directory:
     "~/.config/opencode/**": allow
     "/Users/akamel/.config/opencode/**": allow
-  edit: deny
-  write: deny
+  edit: allow
+  write: allow
   bash:
     "*": ask
     "git log*": allow

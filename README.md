@@ -1,8 +1,10 @@
 # autoforge-opencode
 
+![AutoForge Architecture](docs/architecture.png)
+
 Hierarchical multi-agent orchestration for [OpenCode](https://opencode.ai) — **model-aware delegation**, ICM `stages/` pipeline, 8 specialized subagents + 6 slash commands.
 
-Replicates the entire AutoForge factory from this repo to any macOS machine in one command. Public, versioned, `git clone && ./install.sh` is the canonical path (like `vault-sync`).
+Replicates the entire AutoForge factory from this repo to any macOS machine in one command. Public, versioned, `git clone && ./install.sh` is the canonical path (like `vault-sync`). See [Architecture](docs/architecture.md) and [Spec Addendum](docs/SPEC-ADDENDUM.md) for the authoritative spec vs live divergences.
 
 ## Quick start (new machine)
 
