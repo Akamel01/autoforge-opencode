@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["opencode-task-model@1.3.1"],
+  "agent": {
+    "general": { "model": "opencode/gpt-5-nano" },
+    "explore": { "model": "opencode/gpt-5-nano" }
+  },
+  "subagent_depth": 2,
+  "permission": {
+    "task": {
+      "autoforge-*": "allow",
+      "explore": "allow",
+      "general": "allow"
+    },
+    "question": "allow"
+  }
+}

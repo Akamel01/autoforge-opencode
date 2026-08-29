@@ -1,0 +1,40 @@
+# AutoForge model policy — central authority for child-agent model allocation
+# Override hierarchy: global default → role-specific → task/module-specific → explicit runtime override
+# Runtime overrides must not permanently modify this file unless explicitly requested.
+# Registry: ./model-registry.yaml — orchestrator MUST lookup window/capabilities before sizing Tasks.
+
+registry: ./model-registry.yaml
+
+defaults:
+  provider: opencode
+  model: gpt-5-nano
+
+child_agents:
+  discovery:
+    provider: opencode
+    model: gpt-5-nano
+  requirements-griller:
+    provider: opencode
+    model: gpt-5-nano
+  architect:
+    provider: opencode
+    model: gpt-5
+  planner:
+    provider: opencode
+    model: gpt-5
+  worker:
+    provider: opencode
+    model: gpt-5-nano
+  reviewer:
+    provider: opencode
+    model: gpt-5
+  validator:
+    provider: opencode
+    model: gpt-5-nano
+  investigator:
+    provider: opencode
+    model: gpt-5-nano
+
+# Model-aware guidance: orchestrator budgets prompt ≈ min(context_window * 0.30, 80000) tok
+# per model-registry.yaml guidance; planner/reviewer use bigger window (gpt-5 272k) for critical tasks,
+# workers stay on gpt-5-nano 128k for throughput. Override per task via Task(model="...") without editing this file.

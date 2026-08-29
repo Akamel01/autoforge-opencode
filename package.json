@@ -1,0 +1,15 @@
+{
+  "name": "autoforge-opencode",
+  "version": "1.0.0",
+  "description": "AutoForge — hierarchical multi-agent orchestration for OpenCode (model-aware delegation)",
+  "private": false,
+  "type": "module",
+  "dependencies": {
+    "@opencode-ai/plugin": "1.0.146"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "verify": "node scripts/verify.mjs",
+    "sync-models": "node scripts/sync-models.mjs"
+  }
+}

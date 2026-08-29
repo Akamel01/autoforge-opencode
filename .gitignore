@@ -1,0 +1,8 @@
+node_modules/
+bun.lock
+package-lock.json
+.DS_Store
+.autoforge/
+.tmp/
+state/
+.opencode/node_modules/

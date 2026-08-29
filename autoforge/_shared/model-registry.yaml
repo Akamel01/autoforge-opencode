@@ -1,0 +1,95 @@
+# AutoForge model registry — capability + window metadata for model-aware delegation
+# Orchestrator MUST lookup resolved model here before sizing Task prompts.
+# Update via `node scripts/sync-models.mjs --check` (warns on missing `opencode models` entries).
+# Windows are upstream documented values (approx tok); guidance encodes sizing heuristic.
+# Do not store secrets here.
+
+defaults:
+  unknown_model:
+    context_window: 64000
+    max_output: 8192
+    capabilities: [tools]
+    cost: unknown
+    strengths: []
+    guidance: "Conservative: summarize inputs, cap prompt at 30k tok, require concise Return."
+
+models:
+  opencode/gpt-5-nano:
+    context_window: 128000
+    max_output: 16384
+    capabilities: [tools, structured-output, fast]
+    cost: low
+    strengths: [high-throughput, small-module execution, worker]
+    guidance: "Budget 38k tok (30%). Summarize >5 files, tracker-index verbatim only."
+
+  opencode/gpt-5:
+    context_window: 272000
+    max_output: 32768
+    capabilities: [tools, reasoning, vision, structured-output]
+    cost: high
+    strengths: [planning, critique, architecture, orchestrator]
+    guidance: "Budget 80k tok. Can ingest tracker-index + 2 reports verbatim; include rationale."
+
+  opencode/gpt-5.1:
+    context_window: 272000
+    max_output: 32768
+    capabilities: [tools, reasoning, vision]
+    cost: high
+    strengths: [planning, critique]
+    guidance: "Budget 80k tok. Prefer richer instructions."
+
+  opencode/claude-sonnet-4-5:
+    context_window: 200000
+    max_output: 64000
+    capabilities: [tools, reasoning, long-context, code]
+    cost: high
+    strengths: [deep review, validator, investigator]
+    guidance: "Budget 60k tok. Deep read, cite file:line, allow 80k context."
+
+  opencode/claude-opus-4-5:
+    context_window: 200000
+    max_output: 64000
+    capabilities: [tools, reasoning, long-context, code, vision]
+    cost: very-high
+    strengths: [architecture, investigation]
+    guidance: "Budget 60k tok. Full reasoning, cross-module checks."
+
+  opencode/gemini-3-flash:
+    context_window: 1000000
+    max_output: 32768
+    capabilities: [tools, reasoning, long-context, fast]
+    cost: medium
+    strengths: [large codebase scan]
+    guidance: "Budget 80k tok (cap). Can ingest many files; still summarize for cost."
+
+  opencode/gemini-3.1-pro:
+    context_window: 1000000
+    max_output: 65536
+    capabilities: [tools, reasoning, long-context, vision]
+    cost: high
+    strengths: [discovery, large-context reasoning]
+    guidance: "Budget 80k tok (cap). Use for discovery/grill when many trackers."
+
+  opencode/qwen3.5-plus:
+    context_window: 131072
+    max_output: 16384
+    capabilities: [tools, code]
+    cost: low
+    strengths: [worker, fast iteration]
+    guidance: "Budget 39k tok. Keep prompts checklist-style."
+
+  opencode/muse-spark-1.2:
+    context_window: 128000
+    max_output: 16384
+    capabilities: [tools, fast]
+    cost: low
+    strengths: [worker, contributor-free]
+    guidance: "Budget 38k tok. Same shaping as gpt-5-nano."
+
+  opencode/grok-4.5:
+    context_window: 131072
+    max_output: 16384
+    capabilities: [tools, reasoning]
+    cost: medium
+    strengths: [general]
+    guidance: "Budget 39k tok. Standard shaping."
