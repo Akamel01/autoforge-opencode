@@ -1,7 +1,6 @@
 ---
-description: "AutoForge Reviewer — independent read-only review of worker output (APPROVED/CHANGES_REQUIRED/etc)"
+description: "AutoForge Reviewer — independent read-only review of worker output (APPROVED/CHANGES_REQUIRED/etc) (inherits orchestrator model)"
 mode: subagent
-model: opencode/gpt-5
 permission:
   external_directory:
     "~/.config/opencode/**": allow

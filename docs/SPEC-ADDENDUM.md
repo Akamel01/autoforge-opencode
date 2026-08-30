@@ -4,25 +4,25 @@ This repo **implements** the AutoForge architecture (`autoforge-architecture.md`
 
 > Diagram’s MODEL POLICY pane shows the original spec (all `gpt-5-nano`); live policy is D1 below. Diagram remains correct for the 12-phase lifecycle.
 
-## D1 — Role-specialized models (Spec §12 vs live)
+## D1 — Role-specialized models (Spec §12 vs live, corrected per inherit)
 
 - **Spec:** every `child_agents: * → provider: opencode, model: gpt-5-nano` (8× uniform).
-- **Live:** `autoforge/_shared/model-policy.yaml` routes **critical reasoning** roles to bigger window:
-  - `architect, planner, reviewer → opencode/gpt-5` (272k context, budget 80k tok = `min(30%,80k)`)
-  - `discovery, griller, worker, validator, investigator → opencode/gpt-5-nano` (128k, budget 38k)
-  - `defaults: gpt-5-nano` unchanged. Hierarchy stays `Global → Role → Task → Runtime` (`protocol.md §Model policy`).
-- **Why:** planner/reviewer/architect benefit from 2× context for tracker-index + 2 reports verbatim; workers are throughput-optimized.
+- **Live (after inherit fix):** `autoforge/_shared/model-policy.yaml`:
+  - `architect, planner, reviewer → inherit` (no `model:` pin in `agents/autoforge-{architect,planner,reviewer}.md` — they run **same model as orchestrator/main session**). If main is `muse-spark-1.2-contributor-free` (1,048,576, 80k cap) or `gpt-5/5-nano` (400k, 80k cap) or `qwen3.5-plus` (1M) they get that window; if main is `gpt-5-nano` they get nano (no upgrade).
+  - `discovery, griller, worker, validator, investigator → opencode/gpt-5-nano` (400k, 80k cap) pinned for throughput — regardless of main.
+  - `defaults: gpt-5-nano` (400k) unchanged. Hierarchy stays `Global → Role → Task → Runtime` (`protocol.md §Model policy`).
+- **Why:** planner/reviewer/architect benefit from main's full window for tracker-index + 2 reports verbatim; workers are throughput-optimized. **No default `gpt-5` pin** — `gpt-5` only used when you run main as `gpt-5`.
 
-Sync gate: `scripts/verify.mjs` asserts `planner == gpt-5`, `reviewer == gpt-5`.
+Sync gate: `scripts/verify.mjs` asserts `planner/reviewer/architect inherit` (no `model:` field) + `worker == gpt-5-nano`.
 
 ## D2 — Model-aware delegation (new, not in spec)
 
-- **Added:** `autoforge/_shared/model-registry.yaml` — 10 seeded `opencode/*` models (`gpt-5-nano 128k, gpt-5/5.1 272k, claude-sonnet/opus 200k, gemini-3-flash/3.1-pro 1M, qwen3.5-plus/muse-spark/grok 128k` + `unknown 64k` fallback) with `context_window / max_output / capabilities / guidance`.
+- **Added:** `autoforge/_shared/model-registry.yaml` — **11** seeded `opencode/*` models (`gpt-5-nano/gpt-5/gpt-5.1 400k, muse-spark-1.2 1M, muse-spark-1.2-contributor-free 1M, claude-sonnet/opus 200k, gemini-3-flash/3.1-pro 1M, qwen3.5-plus 1M, grok-4.5 500k` + `unknown 64k` fallback) with `context_window / max_output / capabilities / guidance` from `models.dev` (2026-08-05) and Opencode Zen.
 - **Policy:** `registry: ./model-registry.yaml` pointer in `model-policy.yaml`.
-- **Behavior:** orchestrator (`commands/autoforge.md:9`, `spawn-contract.md §2b`) **must** `resolve model → lookup registry → budget = min(context_window*0.30, 80000) → shape Task inputs` (verbatim vs summarized paragraph+`file:line` vs chunked; `fast` gets checklist, `reasoning` gets tradeoffs). Every `Task` prompt includes `Model budget: X tok (…) — inputs sized to fit`.
-- **Ops:** `node scripts/sync-models.mjs --check` warns if policy models are missing from registry; `opencode models` is advisory only (10-seed covers policy models).
+- **Behavior:** orchestrator (`commands/autoforge.md:9`, `spawn-contract.md §2b`) **must** `resolve model → lookup registry → budget = min(context_window*0.30, 80000) → shape Task inputs` (verbatim vs summarized paragraph+`file:line` vs chunked; `fast` gets checklist, `reasoning` gets tradeoffs). Every `Task` prompt includes `Model budget: X tok (…) — inputs sized to fit`. For `inherit` roles, lookup is `registry[orchestrator_model]`.
+- **Ops:** `node scripts/sync-models.mjs --check` warns if policy models are missing from registry; `opencode models` is advisory only (11-seed covers policy + common mains).
 
-This is an **extension** — spec §12 did not mention windows.
+This is an **extension** — spec §12 did not mention windows. **Fix:** `muse-spark-1.2(-contributor-free)` was `128k` → corrected to `1,048,576/131,072` per `models.dev: meta/muse-spark-1.2`; `gpt-5*` corrected `128k/272k→400k/128k` per `openai/gpt-5`.
 
 ## D3 — Lifecycle → 7-stage mapping (Spec §5:12 → repo `stages/`)
 
@@ -58,11 +58,11 @@ Spec §15.2’s `01_discovery, 02_requirements, 03_architecture, 04_plan, 05_exe
 
 ## D9 — Plan command model hardcode
 
-- `commands/autoforge-plan.md` previously hard-coded `model: opencode/gpt-5-nano` for planner/critic; now `model: opencode/gpt-5` (budget 80k) aligned to D1. Orchestrator main spec already used `model-registry` budgets.
+- `commands/autoforge-plan.md` previously hard-coded `model: opencode/gpt-5` for planner/critic (and `gpt-5-nano` before that); now **no `model:`** — `Task(subagent_type="autoforge-planner", description="plan", ...)` and `reviewer` both **inherit orchestrator** per D1. Orchestrator main spec already used `model-registry` budgets.
 
 ## D10 — Validation contract (§23)
 
-Live `scripts/verify.mjs` covers 11/15 §23 checks (commands, agents, modes, model resolution, default, override, permissions, spawn template, planner gpt-5, registry, spawn-contract). Not yet automated: `skill routing`, `artifact exchange`, `parallel execution test`, `E2E lifecycle`, `ICM walk` — they are exercised via `node scripts/vault-sync.mjs --check` and manual walk in AuditorAI’s mission-control worktree (`feat/mission-control-afk @9482b99`).
+Live `scripts/verify.mjs` covers 11/15 §23 checks (commands, agents, modes, model resolution, default, override, permissions, spawn template, planner/reviewer/architect inherit + worker nano, registry 400k/1M, spawn-contract). Not yet automated: `skill routing`, `artifact exchange`, `parallel execution test`, `E2E lifecycle`, `ICM walk` — they are exercised via `node scripts/vault-sync.mjs --check` and manual walk in AuditorAI’s mission-control worktree (`feat/mission-control-afk @9482b99`).
 
 ---
 

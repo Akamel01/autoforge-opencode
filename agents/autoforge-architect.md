@@ -1,7 +1,6 @@
 ---
-description: "AutoForge Architect — codebase architecture analysis, design alternatives, boundaries, and tradeoffs"
+description: "AutoForge Architect — codebase architecture analysis, design alternatives, boundaries, and tradeoffs (inherits orchestrator model)"
 mode: subagent
-model: opencode/gpt-5
 permission:
   external_directory:
     "~/.config/opencode/**": allow

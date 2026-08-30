@@ -15,28 +15,28 @@ defaults:
 
 models:
   opencode/gpt-5-nano:
-    context_window: 128000
-    max_output: 16384
-    capabilities: [tools, structured-output, fast]
+    context_window: 400000
+    max_output: 128000
+    capabilities: [tools, reasoning, structured-output, fast]
     cost: low
     strengths: [high-throughput, small-module execution, worker]
-    guidance: "Budget 38k tok (30%). Summarize >5 files, tracker-index verbatim only."
+    guidance: "Budget 80k tok (cap 400k*0.30). Keep worker prompts checklist-style despite large window."
 
   opencode/gpt-5:
-    context_window: 272000
-    max_output: 32768
+    context_window: 400000
+    max_output: 128000
     capabilities: [tools, reasoning, vision, structured-output]
     cost: high
     strengths: [planning, critique, architecture, orchestrator]
-    guidance: "Budget 80k tok. Can ingest tracker-index + 2 reports verbatim; include rationale."
+    guidance: "Budget 80k tok (cap). Can ingest tracker-index + 2 reports verbatim; include rationale."
 
   opencode/gpt-5.1:
-    context_window: 272000
-    max_output: 32768
+    context_window: 400000
+    max_output: 128000
     capabilities: [tools, reasoning, vision]
     cost: high
     strengths: [planning, critique]
-    guidance: "Budget 80k tok. Prefer richer instructions."
+    guidance: "Budget 80k tok (cap). Prefer richer instructions."
 
   opencode/claude-sonnet-4-5:
     context_window: 200000
@@ -71,25 +71,33 @@ models:
     guidance: "Budget 80k tok (cap). Use for discovery/grill when many trackers."
 
   opencode/qwen3.5-plus:
-    context_window: 131072
-    max_output: 16384
-    capabilities: [tools, code]
+    context_window: 1000000
+    max_output: 65536
+    capabilities: [tools, reasoning, code, long-context]
     cost: low
-    strengths: [worker, fast iteration]
-    guidance: "Budget 39k tok. Keep prompts checklist-style."
+    strengths: [worker, fast iteration, long-context]
+    guidance: "Budget 80k tok (cap). Checklist-style despite 1M window."
 
   opencode/muse-spark-1.2:
-    context_window: 128000
-    max_output: 16384
-    capabilities: [tools, fast]
+    context_window: 1048576
+    max_output: 131072
+    capabilities: [tools, reasoning, structured-output, vision, long-context]
     cost: low
-    strengths: [worker, contributor-free]
-    guidance: "Budget 38k tok. Same shaping as gpt-5-nano."
+    strengths: [orchestrator, planning, long-context]
+    guidance: "Budget 80k tok (cap 1M*0.30). Can ingest many files verbatim when as orchestrator."
+
+  opencode/muse-spark-1.2-contributor-free:
+    context_window: 1048576
+    max_output: 131072
+    capabilities: [tools, reasoning, structured-output, vision, long-context]
+    cost: low
+    strengths: [orchestrator, planning, long-context, contributor-free]
+    guidance: "Budget 80k tok (cap). Same as muse-spark-1.2 — inherit gives planner/reviewer/architect full window."
 
   opencode/grok-4.5:
-    context_window: 131072
-    max_output: 16384
-    capabilities: [tools, reasoning]
+    context_window: 500000
+    max_output: 500000
+    capabilities: [tools, reasoning, long-context]
     cost: medium
-    strengths: [general]
-    guidance: "Budget 39k tok. Standard shaping."
+    strengths: [general, long-context]
+    guidance: "Budget 80k tok (cap). Large window; cap keeps cost similar to gpt-5."

@@ -23,13 +23,22 @@ try {
   if (agents.length >= 8) ok(`agents: ${agents.length} (${agents.join(", ")})`); else bad(`agents expected 8, got ${agents.length}`);
   if (cfg.subagent_depth === 2) ok("subagent_depth: 2"); else bad(`subagent_depth expected 2, got ${cfg.subagent_depth}`);
   if (cfg.permission?.task?.["autoforge-*"] === "allow") ok("permission.task autoforge-*: allow"); else bad("permission.task autoforge-* missing");
-  // check model specialization
+   // check model specialization: planner/reviewer/architect inherit orchestrator (no pin), workers pin nano
   const planner = cfg.agent?.["autoforge-planner"]?.model;
   const reviewer = cfg.agent?.["autoforge-reviewer"]?.model;
-  if (planner === "opencode/gpt-5") ok(`planner model: ${planner} (bigger)`);
-  else bad(`planner model expected opencode/gpt-5, got ${planner}`);
-  if (reviewer === "opencode/gpt-5") ok(`reviewer model: ${reviewer} (bigger)`);
-  else bad(`reviewer model expected opencode/gpt-5, got ${reviewer}`);
+  const architect = cfg.agent?.["autoforge-architect"]?.model;
+  const worker = cfg.agent?.["autoforge-worker"]?.model;
+  if (!planner || planner === cfg.model || planner === cfg.default_model) ok(`planner inherits orchestrator (no pin, got ${planner ?? "inherit"})`);
+  else if (planner === "opencode/gpt-5") bad(`planner still pinned gpt-5 — should inherit orchestrator (remove model field) got ${planner}`);
+  else ok(`planner inherits (model=${planner}) — verify inherits main`);
+  if (!reviewer || reviewer === cfg.model || reviewer === cfg.default_model) ok(`reviewer inherits orchestrator (got ${reviewer ?? "inherit"})`);
+  else if (reviewer === "opencode/gpt-5") bad(`reviewer still pinned gpt-5 — should inherit`);
+  else ok(`reviewer inherits (model=${reviewer})`);
+  if (!architect || architect === cfg.model) ok(`architect inherits orchestrator (got ${architect ?? "inherit"})`);
+  else if (architect === "opencode/gpt-5") bad(`architect still pinned gpt-5 — should inherit`);
+  else ok(`architect inherits (model=${architect})`);
+  if (worker === "opencode/gpt-5-nano") ok(`worker pinned gpt-5-nano`);
+  else bad(`worker expected gpt-5-nano, got ${worker}`);
 } catch (e) {
   bad(`opencode debug config failed: ${e.message}`);
 }
@@ -46,15 +55,17 @@ for (const s of ["01_discovery","02_grill","03_architect","04_plan","05_execute"
 // 3. model-registry lookup
 try {
   const regRaw = readFileSync(join(GLOBAL, "autoforge/_shared/model-registry.yaml"), "utf8");
-  const hasNano = regRaw.includes("opencode/gpt-5-nano") && regRaw.includes("context_window: 128000");
-  const hasGpt5 = regRaw.includes("opencode/gpt-5:") && regRaw.includes("context_window: 272000");
+  const hasNano = regRaw.includes("opencode/gpt-5-nano") && regRaw.includes("context_window: 400000");
+  const hasGpt5 = regRaw.includes("opencode/gpt-5:") && regRaw.includes("context_window: 400000");
+  const hasSpark = regRaw.includes("opencode/muse-spark-1.2-contributor-free") && regRaw.includes("1048576");
   const count = (regRaw.match(/opencode\//g) || []).length;
-  if (hasNano) ok("registry gpt-5-nano 128k"); else bad("registry gpt-5-nano missing");
-  if (hasGpt5) ok("registry gpt-5 272k"); else bad("registry gpt-5 missing");
-  if (count >= 10) ok(`registry entries: ${count} >=10`); else bad(`registry entries ${count} <10`);
+  if (hasNano) ok("registry gpt-5-nano 400k"); else bad("registry gpt-5-nano missing 400k");
+  if (hasGpt5) ok("registry gpt-5 400k"); else bad("registry gpt-5 missing 400k");
+  if (hasSpark) ok("registry muse-spark-1.2-contributor-free 1M"); else bad("registry muse-spark 1M missing");
+  if (count >= 11) ok(`registry entries: ${count} >=11`); else bad(`registry entries ${count} <11`);
   const polRaw = readFileSync(join(GLOBAL, "autoforge/_shared/model-policy.yaml"), "utf8");
   if (polRaw.includes("registry:")) ok("model-policy references registry"); else bad("model-policy missing registry pointer");
-  if (polRaw.includes("planner:") && polRaw.includes("model: gpt-5")) ok("model-policy planner->gpt-5"); else bad("model-policy planner not gpt-5");
+  if (polRaw.includes("planner:") && polRaw.includes("model: inherit")) ok("model-policy planner->inherit"); else bad("model-policy planner not inherit");
 } catch (e) { bad(`registry check: ${e.message}`); }
 
 // 4. spawn-contract model-aware

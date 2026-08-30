@@ -1,7 +1,6 @@
 ---
-description: "AutoForge Planner — transforms discovery+architecture into concrete, dependency-aware, testable plan"
+description: "AutoForge Planner — transforms discovery+architecture into concrete, dependency-aware, testable plan (inherits orchestrator model)"
 mode: subagent
-model: opencode/gpt-5
 permission:
   external_directory:
     "~/.config/opencode/**": allow

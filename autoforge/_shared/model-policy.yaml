@@ -16,18 +16,21 @@ child_agents:
   requirements-griller:
     provider: opencode
     model: gpt-5-nano
+  # architect/planner/reviewer inherit orchestrator's model (no pin) — see agents/*.md with no model field.
+  # When main is muse-spark-1.2 (1M) / gpt-5 (400k) / gpt-5-nano (400k) / qwen/grok, those three get the same
+  # window; workers + others stay pinned to gpt-5-nano for throughput.
   architect:
     provider: opencode
-    model: gpt-5
+    model: inherit
   planner:
     provider: opencode
-    model: gpt-5
+    model: inherit
+  reviewer:
+    provider: opencode
+    model: inherit
   worker:
     provider: opencode
     model: gpt-5-nano
-  reviewer:
-    provider: opencode
-    model: gpt-5
   validator:
     provider: opencode
     model: gpt-5-nano
@@ -36,5 +39,5 @@ child_agents:
     model: gpt-5-nano
 
 # Model-aware guidance: orchestrator budgets prompt ≈ min(context_window * 0.30, 80000) tok
-# per model-registry.yaml guidance; planner/reviewer use bigger window (gpt-5 272k) for critical tasks,
-# workers stay on gpt-5-nano 128k for throughput. Override per task via Task(model="...") without editing this file.
+# per model-registry.yaml guidance; architect/planner/reviewer inherit main window, workers stay on
+# gpt-5-nano. Override per task via Task(model="...") without editing this file — omit model to inherit.
